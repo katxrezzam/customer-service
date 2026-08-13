@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: customer-service
+  # spring-cloud-starter-config exige spring.config.import por defecto (falla rapido si falta).
+  # En tests no debe depender de que config-server este levantado, asi que se desactiva ese
+  # chequeo puntual en vez de simular un config.import que igual intentaria una conexion real.
+  cloud:
+    config:
+      import-check:
+        enabled: false
