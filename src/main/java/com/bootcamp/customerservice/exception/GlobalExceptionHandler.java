@@ -23,23 +23,27 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(CustomerNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(CustomerNotFoundException ex, ServerWebExchange exchange) {
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            CustomerNotFoundException ex, ServerWebExchange exchange) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), exchange);
     }
 
     @ExceptionHandler(DuplicateDocumentException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicate(DuplicateDocumentException ex, ServerWebExchange exchange) {
+    public ResponseEntity<ErrorResponse> handleDuplicate(
+            DuplicateDocumentException ex, ServerWebExchange exchange) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), exchange);
     }
 
     @ExceptionHandler(InvalidBusinessRuleException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidRule(InvalidBusinessRuleException ex, ServerWebExchange exchange) {
+    public ResponseEntity<ErrorResponse> handleInvalidRule(
+            InvalidBusinessRuleException ex, ServerWebExchange exchange) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), exchange);
     }
 
     /** Errores de Bean Validation (@Valid) sobre el body del request en un handler reactivo. */
     @ExceptionHandler(WebExchangeBindException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(WebExchangeBindException ex, ServerWebExchange exchange) {
+    public ResponseEntity<ErrorResponse> handleValidation(
+            WebExchangeBindException ex, ServerWebExchange exchange) {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.joining("; "));
@@ -53,7 +57,8 @@ public class GlobalExceptionHandler {
      * fuera 404 - bug encontrado corriendo la coleccion Postman con Newman.
      */
     @ExceptionHandler(ErrorResponseException.class)
-    public ResponseEntity<ErrorResponse> handleErrorResponseException(ErrorResponseException ex, ServerWebExchange exchange) {
+    public ResponseEntity<ErrorResponse> handleErrorResponseException(
+            ErrorResponseException ex, ServerWebExchange exchange) {
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
         if (status == null) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -61,14 +66,17 @@ public class GlobalExceptionHandler {
         return build(status, ex.getMessage(), exchange);
     }
 
-    /** Cualquier excepcion no prevista: no se filtra su mensaje interno al cliente, solo se loguea. */
+    /** Cualquier excepcion no prevista: no se filtra su mensaje interno al cliente, solo se
+     * loguea. */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, ServerWebExchange exchange) {
+    public ResponseEntity<ErrorResponse> handleUnexpected(
+            Exception ex, ServerWebExchange exchange) {
         log.error("Error no controlado, correlationId={}", correlationId(exchange), ex);
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrio un error inesperado", exchange);
     }
 
-    private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, ServerWebExchange exchange) {
+    private ResponseEntity<ErrorResponse> build(
+            HttpStatus status, String message, ServerWebExchange exchange) {
         ErrorResponse body = new ErrorResponse(
                 Instant.now(),
                 status.value(),

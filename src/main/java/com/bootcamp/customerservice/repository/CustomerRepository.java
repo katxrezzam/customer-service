@@ -13,6 +13,7 @@ public interface CustomerRepository extends ReactiveMongoRepository<Customer, St
     /** Usado para validar unicidad de documentNumber antes de crear un cliente nuevo. */
     Mono<Boolean> existsByDocumentNumber(String documentNumber);
 
-    /** Usado para validar unicidad de documentNumber al actualizar (excluyendo al propio cliente). */
+    /** Usado para validar unicidad de documentNumber al actualizar (excluyendo al propio
+     * cliente). */
     Mono<Customer> findByDocumentNumber(String documentNumber);
 }

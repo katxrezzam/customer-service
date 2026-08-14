@@ -45,7 +45,8 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public Mono<CustomerResponse> update(@PathVariable String id, @Valid @RequestBody CustomerRequest request) {
+    public Mono<CustomerResponse> update(
+            @PathVariable String id, @Valid @RequestBody CustomerRequest request) {
         return customerService.update(id, request);
     }
 

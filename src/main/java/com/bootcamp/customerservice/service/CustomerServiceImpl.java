@@ -39,7 +39,8 @@ public class CustomerServiceImpl implements CustomerService {
         return validateBusinessRules(request)
                 .then(Mono.defer(() -> validateDocumentNotTaken(request.documentNumber(), null)))
                 .then(Mono.defer(() -> repository.save(CustomerMapper.toEntity(request))))
-                .doOnNext(saved -> log.info("Cliente creado id={} customerType={}", saved.getId(), saved.getCustomerType()))
+                .doOnNext(saved -> log.info("Cliente creado id={} customerType={}",
+                        saved.getId(), saved.getCustomerType()))
                 .map(CustomerMapper::toResponse);
     }
 
@@ -57,12 +58,14 @@ public class CustomerServiceImpl implements CustomerService {
     public Mono<CustomerResponse> update(String id, CustomerRequest request) {
         return findEntityById(id)
                 .flatMap(existing -> validateBusinessRules(request)
-                        .then(Mono.defer(() -> validateDocumentNotTaken(request.documentNumber(), id)))
+                        .then(Mono.defer(() ->
+                                validateDocumentNotTaken(request.documentNumber(), id)))
                         .then(Mono.defer(() -> {
                             CustomerMapper.applyUpdate(existing, request);
                             return repository.save(existing);
                         })))
-                .doOnNext(saved -> log.info("Cliente actualizado id={} customerType={}", saved.getId(), saved.getCustomerType()))
+                .doOnNext(saved -> log.info("Cliente actualizado id={} customerType={}",
+                        saved.getId(), saved.getCustomerType()))
                 .map(CustomerMapper::toResponse);
     }
 
@@ -86,7 +89,8 @@ public class CustomerServiceImpl implements CustomerService {
     private Mono<Void> validateBusinessRules(CustomerRequest request) {
         return Mono.defer(() -> {
             if (request.customerType() == CustomerType.PERSONAL) {
-                if (!StringUtils.hasText(request.firstName()) || !StringUtils.hasText(request.lastName())) {
+                if (!StringUtils.hasText(request.firstName())
+                        || !StringUtils.hasText(request.lastName())) {
                     return Mono.error(new InvalidBusinessRuleException(
                             "Cliente personal requiere firstName y lastName"));
                 }
@@ -103,7 +107,8 @@ public class CustomerServiceImpl implements CustomerService {
                     return Mono.error(new InvalidBusinessRuleException(
                             "Cliente empresarial requiere businessName"));
                 }
-                if (StringUtils.hasText(request.firstName()) || StringUtils.hasText(request.lastName())) {
+                if (StringUtils.hasText(request.firstName())
+                        || StringUtils.hasText(request.lastName())) {
                     return Mono.error(new InvalidBusinessRuleException(
                             "Cliente empresarial no debe tener firstName/lastName"));
                 }
@@ -123,7 +128,8 @@ public class CustomerServiceImpl implements CustomerService {
     private Mono<Void> validateDocumentNotTaken(String documentNumber, String excludeId) {
         return repository.findByDocumentNumber(documentNumber)
                 .flatMap(existing -> {
-                    boolean isSameCustomer = excludeId != null && existing.getId().equals(excludeId);
+                    boolean isSameCustomer = excludeId != null
+                            && existing.getId().equals(excludeId);
                     if (isSameCustomer) {
                         return Mono.<Void>empty();
                     }

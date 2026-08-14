@@ -13,7 +13,8 @@ public final class CustomerMapper {
     private CustomerMapper() {
     }
 
-    /** Arma una entidad nueva (sin id/auditoria, los completa Mongo al guardar) desde el request. */
+    /** Arma una entidad nueva (sin id/auditoria, los completa Mongo al guardar) desde el
+     * request. */
     public static Customer toEntity(CustomerRequest request) {
         return Customer.builder()
                 .customerType(request.customerType())
@@ -35,6 +36,7 @@ public final class CustomerMapper {
         customer.setBusinessName(request.businessName());
     }
 
+    /** Convierte la entidad al DTO de salida (nunca se expone {@link Customer} directamente). */
     public static CustomerResponse toResponse(Customer customer) {
         return new CustomerResponse(
                 customer.getId(),
