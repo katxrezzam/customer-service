@@ -8,3 +8,8 @@ spring:
     config:
       import-check:
         enabled: false
+
+# Mismo motivo que arriba: los tests no deben depender de eureka-server levantado.
+eureka:
+  client:
+    enabled: false
