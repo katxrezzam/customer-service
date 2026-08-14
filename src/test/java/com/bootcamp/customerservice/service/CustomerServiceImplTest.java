@@ -1,10 +1,13 @@
 package com.bootcamp.customerservice.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.bootcamp.customerservice.dto.CustomerRequest;
+import com.bootcamp.customerservice.event.CustomerEventPublisher;
+import com.bootcamp.customerservice.event.CustomerEventType;
 import com.bootcamp.customerservice.exception.CustomerNotFoundException;
 import com.bootcamp.customerservice.exception.DuplicateDocumentException;
 import com.bootcamp.customerservice.exception.InvalidBusinessRuleException;
@@ -27,12 +30,14 @@ class CustomerServiceImplTest {
 
     @Mock
     private CustomerRepository repository;
+    @Mock
+    private CustomerEventPublisher eventPublisher;
 
     private CustomerServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new CustomerServiceImpl(repository);
+        service = new CustomerServiceImpl(repository, eventPublisher);
     }
 
     private CustomerRequest personalRequest() {
@@ -66,6 +71,8 @@ class CustomerServiceImplTest {
                         && response.customerType() == CustomerType.PERSONAL
                         && "12345678".equals(response.documentNumber()))
                 .verifyComplete();
+
+        verify(eventPublisher).publish(any(Customer.class), eq(CustomerEventType.CREATED));
     }
 
     @Test
@@ -193,6 +200,8 @@ class CustomerServiceImplTest {
         StepVerifier.create(service.update("abc123", personalRequest()))
                 .expectNextMatches(response -> "abc123".equals(response.id()))
                 .verifyComplete();
+
+        verify(eventPublisher).publish(existente, CustomerEventType.UPDATED);
     }
 
     @Test
@@ -226,6 +235,7 @@ class CustomerServiceImplTest {
                 .verifyComplete();
 
         verify(repository).delete(existente);
+        verify(eventPublisher).publish(existente, CustomerEventType.DELETED);
     }
 
     @Test

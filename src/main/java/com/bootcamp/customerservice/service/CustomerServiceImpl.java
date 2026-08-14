@@ -3,6 +3,8 @@ package com.bootcamp.customerservice.service;
 import com.bootcamp.customerservice.dto.CustomerMapper;
 import com.bootcamp.customerservice.dto.CustomerRequest;
 import com.bootcamp.customerservice.dto.CustomerResponse;
+import com.bootcamp.customerservice.event.CustomerEventPublisher;
+import com.bootcamp.customerservice.event.CustomerEventType;
 import com.bootcamp.customerservice.exception.CustomerNotFoundException;
 import com.bootcamp.customerservice.exception.DuplicateDocumentException;
 import com.bootcamp.customerservice.exception.InvalidBusinessRuleException;
@@ -29,9 +31,12 @@ public class CustomerServiceImpl implements CustomerService {
     private static final Logger log = LoggerFactory.getLogger(CustomerServiceImpl.class);
 
     private final CustomerRepository repository;
+    private final CustomerEventPublisher eventPublisher;
 
-    public CustomerServiceImpl(CustomerRepository repository) {
+    public CustomerServiceImpl(
+            CustomerRepository repository, CustomerEventPublisher eventPublisher) {
         this.repository = repository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -39,8 +44,11 @@ public class CustomerServiceImpl implements CustomerService {
         return validateBusinessRules(request)
                 .then(Mono.defer(() -> validateDocumentNotTaken(request.documentNumber(), null)))
                 .then(Mono.defer(() -> repository.save(CustomerMapper.toEntity(request))))
-                .doOnNext(saved -> log.info("Cliente creado id={} customerType={}",
-                        saved.getId(), saved.getCustomerType()))
+                .doOnNext(saved -> {
+                    log.info("Cliente creado id={} customerType={}",
+                            saved.getId(), saved.getCustomerType());
+                    eventPublisher.publish(saved, CustomerEventType.CREATED);
+                })
                 .map(CustomerMapper::toResponse);
     }
 
@@ -64,16 +72,23 @@ public class CustomerServiceImpl implements CustomerService {
                             CustomerMapper.applyUpdate(existing, request);
                             return repository.save(existing);
                         })))
-                .doOnNext(saved -> log.info("Cliente actualizado id={} customerType={}",
-                        saved.getId(), saved.getCustomerType()))
+                .doOnNext(saved -> {
+                    log.info("Cliente actualizado id={} customerType={}",
+                            saved.getId(), saved.getCustomerType());
+                    eventPublisher.publish(saved, CustomerEventType.UPDATED);
+                })
                 .map(CustomerMapper::toResponse);
     }
 
     @Override
     public Mono<Void> delete(String id) {
         return findEntityById(id)
-                .flatMap(repository::delete)
-                .doOnSuccess(v -> log.info("Cliente eliminado id={}", id));
+                .flatMap(existing -> repository.delete(existing).thenReturn(existing))
+                .doOnNext(existing -> {
+                    log.info("Cliente eliminado id={}", existing.getId());
+                    eventPublisher.publish(existing, CustomerEventType.DELETED);
+                })
+                .then();
     }
 
     private Mono<Customer> findEntityById(String id) {
