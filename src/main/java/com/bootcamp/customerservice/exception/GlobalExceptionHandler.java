@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
@@ -43,6 +44,21 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.joining("; "));
         return build(HttpStatus.BAD_REQUEST, message, exchange);
+    }
+
+    /**
+     * Excepciones propias de Spring que ya traen su propio status code correcto (ej:
+     * NoResourceFoundException cuando la URL no matchea ningun endpoint, como /customers/ con id
+     * vacio). Sin este handler caian todas en el generico de abajo como 500, aunque el status real
+     * fuera 404 - bug encontrado corriendo la coleccion Postman con Newman.
+     */
+    @ExceptionHandler(ErrorResponseException.class)
+    public ResponseEntity<ErrorResponse> handleErrorResponseException(ErrorResponseException ex, ServerWebExchange exchange) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return build(status, ex.getMessage(), exchange);
     }
 
     /** Cualquier excepcion no prevista: no se filtra su mensaje interno al cliente, solo se loguea. */
