@@ -25,7 +25,8 @@ class CustomerEventPublisherTest {
     private CustomerEventPublisher publisher;
 
     private Customer customer() {
-        return Customer.builder().id("cust1").customerType(CustomerType.PERSONAL).build();
+        return Customer.builder().id("cust1").customerType(CustomerType.PERSONAL)
+                .documentNumber("12345678").build();
     }
 
     @Test

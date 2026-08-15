@@ -38,7 +38,8 @@ public class CustomerEventPublisher {
      * cliente caigan en la misma particion y se procesen en orden (CREATED antes que UPDATED). */
     public void publish(Customer customer, CustomerEventType eventType) {
         CustomerEvent event = new CustomerEvent(
-                customer.getId(), customer.getCustomerType(), eventType, Instant.now());
+                customer.getId(), customer.getCustomerType(), customer.getDocumentNumber(),
+                eventType, Instant.now());
         kafkaTemplate.send(TOPIC, customer.getId(), event).whenComplete((result, ex) -> {
             if (ex != null) {
                 log.error("No se pudo publicar evento {} del cliente {}",
