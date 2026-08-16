@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.bootcamp</groupId>
         <artifactId>bootcamp-parent-pom</artifactId>
-        <version>2.1.0</version>
+        <version>2.2.0</version>
         <relativePath/>
     </parent>
 
@@ -65,6 +65,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-kafka</artifactId>
+        </dependency>
+        <!-- Contrato OpenAPI (Requerimiento no funcional Parte I/III) + Swagger UI: generado a
+             partir de los controladores REST reales via @OpenAPIDefinition en la clase principal
+             - /v3/api-docs y /swagger-ui.html. Version gestionada en bootcamp-parent-pom. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
         </dependency>
 
         <dependency>
