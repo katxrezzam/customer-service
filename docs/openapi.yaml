@@ -1,0 +1,155 @@
+openapi: 3.1.0
+info:
+  title: customer-service
+  description: "Gestion de clientes personal/empresarial: CRUD, perfiles VIP/PYME."
+  version: v1
+servers:
+- url: http://localhost:8081
+  description: Generated server url
+paths:
+  /customers/{id}:
+    get:
+      tags:
+      - customer-controller
+      operationId: findById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+    put:
+      tags:
+      - customer-controller
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+    delete:
+      tags:
+      - customer-controller
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+  /customers:
+    get:
+      tags:
+      - customer-controller
+      operationId: findAll
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerResponse"
+    post:
+      tags:
+      - customer-controller
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerRequest"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+components:
+  schemas:
+    CustomerRequest:
+      type: object
+      properties:
+        customerType:
+          type: string
+          enum:
+          - PERSONAL
+          - BUSINESS
+        documentType:
+          type: string
+          enum:
+          - DNI
+          - CE
+          - PASSPORT
+          - RUC
+        documentNumber:
+          type: string
+          minLength: 1
+        firstName:
+          type: string
+        lastName:
+          type: string
+        businessName:
+          type: string
+      required:
+      - customerType
+      - documentNumber
+      - documentType
+    CustomerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        customerType:
+          type: string
+          enum:
+          - PERSONAL
+          - BUSINESS
+        documentType:
+          type: string
+          enum:
+          - DNI
+          - CE
+          - PASSPORT
+          - RUC
+        documentNumber:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        businessName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
